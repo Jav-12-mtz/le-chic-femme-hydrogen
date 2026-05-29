@@ -36,12 +36,14 @@ const PRODUCT_BY_HANDLE_QUERY = `#graphql
 `;
 
 export async function loader({params, context}) {
-  const {sku} = params;
+  const param = params.sku;
 
-  // Find the local catalog entry to discover the Shopify handle (and have
-  // fallback data if Shopify is offline / product not yet published).
-  const local = findBySku(sku);
-  const handle = local?.handle;
+  // The URL param may be either a SKU ("B01") or a Shopify handle
+  // ("b01-voyageur-meraude"). findBySku now accepts both.
+  const local = findBySku(param);
+  // Prefer the local catalog's Shopify handle; otherwise treat the URL
+  // param itself as a handle (covers products that exist only in Shopify).
+  const handle = local?.handle || param?.toLowerCase();
 
   let shopifyProduct = null;
   if (handle) {

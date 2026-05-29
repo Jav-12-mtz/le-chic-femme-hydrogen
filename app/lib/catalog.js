@@ -36,8 +36,16 @@ export function getBySlug(slug) {
   return catalogo.productos[cat.key] || [];
 }
 
-export function findBySku(sku) {
-  return getAllLocal().find((p) => p.sku === sku) || null;
+export function findBySku(skuOrHandle) {
+  if (!skuOrHandle) return null;
+  const needle = String(skuOrHandle).toLowerCase();
+  return (
+    getAllLocal().find(
+      (p) =>
+        p.sku?.toLowerCase() === needle ||
+        p.handle?.toLowerCase() === needle,
+    ) || null
+  );
 }
 
 export function getFeatured(count = 8) {
