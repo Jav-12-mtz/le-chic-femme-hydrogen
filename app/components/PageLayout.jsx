@@ -4,6 +4,8 @@ import {Aside} from '~/components/Aside';
 import {Footer} from '~/components/Footer';
 import {Header, HeaderMenu} from '~/components/Header';
 import {CartMain} from '~/components/CartMain';
+import Marquee from '~/components/Marquee';
+import Cursor from '~/components/Cursor';
 import {
   SEARCH_ENDPOINT,
   SearchFormPredictive,
@@ -23,9 +25,11 @@ export function PageLayout({
 }) {
   return (
     <Aside.Provider>
+      <Cursor />
       <CartAside cart={cart} />
       <SearchAside />
       <MobileMenuAside header={header} publicStoreDomain={publicStoreDomain} />
+      <Marquee />
       {header && (
         <Header
           header={header}
