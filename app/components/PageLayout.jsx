@@ -6,6 +6,7 @@ import {Header, HeaderMenu} from '~/components/Header';
 import {CartMain} from '~/components/CartMain';
 import Marquee from '~/components/Marquee';
 import Cursor from '~/components/Cursor';
+import CartToast from '~/components/CartToast';
 import {
   SEARCH_ENDPOINT,
   SearchFormPredictive,
@@ -44,6 +45,7 @@ export function PageLayout({
         header={header}
         publicStoreDomain={publicStoreDomain}
       />
+      <CartToast />
     </Aside.Provider>
   );
 }

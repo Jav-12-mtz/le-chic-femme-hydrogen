@@ -361,6 +361,48 @@ img { display: block; max-width: 100%; }
 .pd-actions { display: flex; gap: 12px; margin-bottom: 32px; }
 .pd-actions > form { display: flex; flex: 1; }
 .pd-actions > form > .btn-primary { width: 100%; }
+
+/* ---------- CART TOAST (elegant confirmation) ---------- */
+.cart-toast {
+  position: fixed;
+  z-index: 200;
+  bottom: 28px;
+  right: 28px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 22px;
+  background: var(--c-ink, #0B0B0B);
+  color: var(--c-cream, #F4EFE6);
+  border: 1px solid rgba(201,169,97,0.45);
+  box-shadow: 0 24px 60px -20px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.15);
+  border-radius: 2px;
+  min-width: 260px;
+  max-width: 360px;
+  pointer-events: none;
+}
+.cart-toast-icon {
+  width: 36px; height: 36px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  background: rgba(201,169,97,0.16);
+  color: var(--c-gold, #B8A179);
+  flex-shrink: 0;
+}
+.cart-toast-text { display: flex; flex-direction: column; gap: 2px; line-height: 1.2; }
+.cart-toast-eyebrow {
+  font-size: 9.5px; letter-spacing: 0.32em; text-transform: uppercase;
+  color: var(--c-gold, #B8A179);
+}
+.cart-toast-title {
+  font-family: var(--ff-display, 'Playfair Display', serif);
+  font-style: italic;
+  font-size: 17px;
+  color: var(--c-cream, #F4EFE6);
+}
+@media (max-width: 600px) {
+  .cart-toast { left: 16px; right: 16px; bottom: 16px; min-width: 0; }
+}
 .pd-meta { font-size: 13px; color: var(--c-smoke); line-height: 1.8; padding-top: 24px; border-top: 1px solid rgba(11,11,11,0.1); }
 
 /* ---------- LOADER ---------- */
