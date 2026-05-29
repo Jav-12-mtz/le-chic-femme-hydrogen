@@ -11,6 +11,24 @@ export function imgUrl(path) {
   return `/images-webp/${path.replace(/\.(jpe?g|png)$/i, '.webp')}`;
 }
 
+/**
+ * Locale-aware price formatter for catalog values (stored as MXN integers).
+ * Falls back to en-US formatting if Intl is missing.
+ */
+export const CATALOG_CURRENCY = catalogo?.moneda || 'MXN';
+export function formatPrice(value, currency = CATALOG_CURRENCY) {
+  const n = Number(value || 0);
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency,
+      maximumFractionDigits: 0,
+    }).format(n);
+  } catch {
+    return `$ ${n.toLocaleString('en-US')} ${currency}`;
+  }
+}
+
 export const CATEGORIES = [
   {slug: '', key: 'all', label: 'All'},
   {slug: 'bolsos', key: 'bolsos', label: 'Bags'},

@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import { Link } from 'react-router'
-import { imgUrl } from '~/lib/catalog'
+import { imgUrl, formatPrice } from '~/lib/catalog'
 
 export default function LookCard({ conjunto, index = 0 }) {
   return (
@@ -22,7 +22,7 @@ export default function LookCard({ conjunto, index = 0 }) {
           <p style={{ marginTop: 12, fontSize: 14, color: 'var(--c-mist)', maxWidth: 320 }}>{conjunto.concepto}</p>
         </div>
         <div className="look-info">
-          <span>{conjunto.piezas.length} pieces · ${conjunto.precio_conjunto.toLocaleString('en-US')}</span>
+          <span>{conjunto.piezas.length} pieces · {formatPrice(conjunto.precio_conjunto)}</span>
           <Link className="look-cta" to={`/conjunto/${conjunto.id}`}>Découvrir <ArrowRight size={14} /></Link>
         </div>
       </div>

@@ -2,7 +2,7 @@ import {Link, useLoaderData} from 'react-router';
 import {motion} from 'framer-motion';
 import {Money} from '@shopify/hydrogen';
 import {AddToCartButton} from '~/components/AddToCartButton';
-import {findBySku, imgUrl} from '~/lib/catalog';
+import {findBySku, imgUrl, formatPrice} from '~/lib/catalog';
 
 export const meta = ({data}) => [
   {
@@ -145,7 +145,7 @@ export default function ProductDetail() {
             {variant ? (
               <Money data={variant.price} />
             ) : (
-              <>$ {localPrice?.toLocaleString('en-US')} USD</>
+              formatPrice(localPrice)
             )}
           </div>
 

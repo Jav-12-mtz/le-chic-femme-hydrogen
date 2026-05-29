@@ -1,6 +1,6 @@
 import {motion} from 'framer-motion';
 import {Link} from 'react-router';
-import {imgUrl} from '~/lib/catalog';
+import {imgUrl, formatPrice} from '~/lib/catalog';
 
 export default function ProductCard({product, index = 0, badge}) {
   const handle = product.handle || product.sku;
@@ -30,15 +30,13 @@ export default function ProductCard({product, index = 0, badge}) {
           />
           <div className="product-overlay">
             <span className="product-quick-add">
-              Découvrir · ${price.toLocaleString('en-US')}
+              Découvrir · {formatPrice(price)}
             </span>
           </div>
         </div>
         <div className="product-meta">
           <div className="product-name">{product.nombre}</div>
-          <div className="product-price">
-            $ {price.toLocaleString('en-US')} USD
-          </div>
+          <div className="product-price">{formatPrice(price)}</div>
         </div>
       </Link>
     </motion.article>
