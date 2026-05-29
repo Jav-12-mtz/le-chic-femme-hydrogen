@@ -3,7 +3,7 @@ import {motion} from 'framer-motion';
 import HeroSlider from '~/components/HeroSlider';
 import ProductCard from '~/components/ProductCard';
 import LookCard from '~/components/LookCard';
-import {catalogo, getFeatured, getConjuntos} from '~/lib/catalog';
+import {catalogo, getFeatured, getConjuntos, imgUrl} from '~/lib/catalog';
 
 export const meta = () => [
   {title: "Le Chic Femme — L'art de la femme moderne"},
@@ -166,8 +166,10 @@ export default function Index() {
                   {cat.img && (
                     <img
                       className="look-bg"
-                      src={`/images/${cat.img}`}
+                      src={imgUrl(cat.img)}
                       alt={cat.name}
+                      loading="lazy"
+                      decoding="async"
                     />
                   )}
                   <div

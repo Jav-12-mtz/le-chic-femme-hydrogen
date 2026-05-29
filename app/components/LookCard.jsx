@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import { Link } from 'react-router'
+import { imgUrl } from '~/lib/catalog'
 
 export default function LookCard({ conjunto, index = 0 }) {
   return (
@@ -11,7 +12,9 @@ export default function LookCard({ conjunto, index = 0 }) {
       viewport={{ once: true, margin: '-80px' }}
       transition={{ duration: 0.9, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
     >
-      <img className="look-bg" src={`/images/${conjunto.imagen_hero}`} alt={conjunto.nombre} loading="lazy" />
+      {conjunto.imagen_hero && (
+        <img className="look-bg" src={imgUrl(conjunto.imagen_hero)} alt={conjunto.nombre} loading="lazy" decoding="async" />
+      )}
       <div className="look-content">
         <div>
           <div className="look-num">N° {String(index + 1).padStart(2, '0')}</div>

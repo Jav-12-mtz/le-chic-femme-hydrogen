@@ -1,6 +1,6 @@
 import {Link, useLoaderData} from 'react-router';
 import {motion} from 'framer-motion';
-import {findBySku} from '~/lib/catalog';
+import {findBySku, imgUrl} from '~/lib/catalog';
 
 export const meta = ({data}) => [
   {title: data?.product ? `${data.product.nombre} · Le Chic Femme` : 'Le Chic Femme'},
@@ -41,9 +41,7 @@ const ShieldIcon = () => (
 
 export default function Product() {
   const {product} = useLoaderData();
-  const imgSrc = product._fromShopify
-    ? product.img
-    : `/images/${product.img}`;
+  const imgSrc = product._fromShopify ? product.img : imgUrl(product.img);
   const price = Number(product.precio || 0);
 
   return (
@@ -55,7 +53,13 @@ export default function Product() {
           transition={{duration: 1, ease: [0.16, 1, 0.3, 1]}}
         >
           <div className="pd-img">
-            <img src={imgSrc} alt={product.nombre} />
+            <img
+              src={imgSrc}
+              alt={product.nombre}
+              loading="eager"
+              fetchpriority="high"
+              decoding="async"
+            />
           </div>
         </motion.div>
         <motion.div

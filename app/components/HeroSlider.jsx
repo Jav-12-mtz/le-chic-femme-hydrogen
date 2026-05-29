@@ -68,7 +68,14 @@ export default function HeroSlider() {
           exit={{ opacity: 0 }}
           transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
         >
-          <img src={`/images/06_anuncios/${s.img}`} alt={s.title} className="slide-img" />
+          <img
+            src={`/images-webp/06_anuncios/${s.img.replace(/\.(jpe?g|png)$/i, '.webp')}`}
+            alt={s.title}
+            className="slide-img"
+            loading={i === 0 ? 'eager' : 'lazy'}
+            fetchpriority={i === 0 ? 'high' : 'low'}
+            decoding="async"
+          />
           <div className="slide-veil" />
         </motion.div>
       </AnimatePresence>

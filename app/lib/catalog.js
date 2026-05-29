@@ -1,5 +1,16 @@
 import catalogo from '~/data/catalogo.json';
 
+/**
+ * Returns the optimized image URL for a catalog item.
+ * Catalog stores paths like "01_bolsos/B01_Foo.jpg" — we serve the
+ * pre-converted WebP variant from /images-webp/.
+ */
+export function imgUrl(path) {
+  if (!path) return '';
+  if (/^https?:\/\//i.test(path)) return path;
+  return `/images-webp/${path.replace(/\.(jpe?g|png)$/i, '.webp')}`;
+}
+
 export const CATEGORIES = [
   {slug: '', key: 'all', label: 'All'},
   {slug: 'bolsos', key: 'bolsos', label: 'Bags'},
