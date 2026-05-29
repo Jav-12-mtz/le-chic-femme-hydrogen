@@ -1,20 +1,69 @@
 import {Link, useLoaderData} from 'react-router';
 import {motion} from 'framer-motion';
+import {Money} from '@shopify/hydrogen';
+import {AddToCartButton} from '~/components/AddToCartButton';
 import {findBySku, imgUrl} from '~/lib/catalog';
 
 export const meta = ({data}) => [
-  {title: data?.product ? `${data.product.nombre} · Le Chic Femme` : 'Le Chic Femme'},
+  {
+    title: data?.product
+      ? `${data.product.title || data.product.nombre} · Le Chic Femme`
+      : 'Le Chic Femme',
+  },
 ];
 
-export async function loader({params}) {
-  const product = findBySku(params.sku);
-  if (!product) {
+const PRODUCT_BY_SKU_QUERY = `#graphql
+  query ProductBySku($query: String!) {
+    products(first: 1, query: $query) {
+      nodes {
+        id
+        title
+        handle
+        descriptionHtml
+        featuredImage { url altText width height }
+        tags
+        productType
+        variants(first: 1) {
+          nodes {
+            id
+            availableForSale
+            sku
+            price { amount currencyCode }
+            compareAtPrice { amount currencyCode }
+          }
+        }
+      }
+    }
+  }
+`;
+
+export async function loader({params, context}) {
+  const {sku} = params;
+  let shopifyProduct = null;
+
+  // Try Shopify first
+  try {
+    const data = await context.storefront.query(PRODUCT_BY_SKU_QUERY, {
+      variables: {query: `sku:${sku}`},
+    });
+    shopifyProduct = data?.products?.nodes?.[0] || null;
+  } catch (e) {
+    console.error('Shopify product lookup failed', e);
+  }
+
+  if (shopifyProduct) {
+    return {product: shopifyProduct, source: 'shopify'};
+  }
+
+  // Fallback to local catalog
+  const local = findBySku(sku);
+  if (!local) {
     throw new Response('Piece not found', {status: 404});
   }
-  return {product};
+  return {product: local, source: 'local'};
 }
 
-const Icon = ({d, ...props}) => (
+const Icon = ({d}) => (
   <svg
     width="16"
     height="16"
@@ -24,7 +73,6 @@ const Icon = ({d, ...props}) => (
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
-    {...props}
   >
     <path d={d} />
   </svg>
@@ -39,13 +87,28 @@ const ShieldIcon = () => (
   <Icon d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
 );
 
-export default function Product() {
-  const {product} = useLoaderData();
-  const imgSrc = product._fromShopify ? product.img : imgUrl(product.img);
-  const price = Number(product.precio || 0);
+export default function ProductDetail() {
+  const {product, source} = useLoaderData();
+  const isShopify = source === 'shopify';
+
+  const title = isShopify ? product.title : product.nombre;
+  const sku = isShopify ? product.variants?.nodes?.[0]?.sku : product.sku;
+  const imgSrc = isShopify
+    ? product.featuredImage?.url
+    : imgUrl(product.img);
+  const description = isShopify
+    ? product.descriptionHtml
+    : null;
+  const descriptionText = !isShopify ? product.descripcion : null;
+  const tags = isShopify ? product.tags : product.tags;
+  const variant = isShopify ? product.variants?.nodes?.[0] : null;
+  const localPrice = !isShopify ? Number(product.precio || 0) : null;
 
   return (
-    <main className="container" style={{paddingTop: 'calc(var(--header-h) + 60px)'}}>
+    <main
+      className="container"
+      style={{paddingTop: 'calc(var(--header-h) + 60px)'}}
+    >
       <div className="pd-grid">
         <motion.div
           initial={{opacity: 0, scale: 1.02}}
@@ -55,31 +118,63 @@ export default function Product() {
           <div className="pd-img">
             <img
               src={imgSrc}
-              alt={product.nombre}
+              alt={title}
               loading="eager"
               fetchpriority="high"
               decoding="async"
             />
           </div>
         </motion.div>
+
         <motion.div
           className="pd-info"
           initial={{opacity: 0, y: 40}}
           animate={{opacity: 1, y: 0}}
           transition={{duration: 0.9, delay: 0.2}}
         >
-          <div className="pd-cat">{product.sku} · Édition Couture</div>
-          <h1 className="pd-name">{product.nombre}</h1>
-          <div className="pd-price">$ {price.toLocaleString('en-US')} USD</div>
-          <p className="pd-desc">
-            {product.descripcion ||
-              'A piece selected by the Maison Le Chic Femme. Rigorous curation, noble materials, timeless elegance.'}
-          </p>
+          <div className="pd-cat">{sku} · Édition Couture</div>
+          <h1 className="pd-name">{title}</h1>
+
+          <div className="pd-price">
+            {variant ? (
+              <Money data={variant.price} />
+            ) : (
+              <>$ {localPrice?.toLocaleString('en-US')} USD</>
+            )}
+          </div>
+
+          {description ? (
+            <div
+              className="pd-desc"
+              dangerouslySetInnerHTML={{__html: description}}
+            />
+          ) : (
+            <p className="pd-desc">
+              {descriptionText ||
+                'A piece selected by the Maison Le Chic Femme. Rigorous curation, noble materials, timeless elegance.'}
+            </p>
+          )}
 
           <div className="pd-actions">
-            <button className="btn-primary" style={{flex: 1}} disabled>
-              Add to bag — coming soon
-            </button>
+            {variant ? (
+              <AddToCartButton
+                disabled={!variant.availableForSale}
+                lines={[
+                  {
+                    merchandiseId: variant.id,
+                    quantity: 1,
+                  },
+                ]}
+              >
+                <span style={{display: 'inline-flex', width: '100%'}}>
+                  {variant.availableForSale ? 'Add to bag' : 'Sold out'}
+                </span>
+              </AddToCartButton>
+            ) : (
+              <button className="btn-primary" style={{flex: 1}} disabled>
+                Available once published in Shopify
+              </button>
+            )}
           </div>
 
           <div className="pd-meta">
@@ -108,7 +203,7 @@ export default function Product() {
             </div>
           </div>
 
-          {product.tags?.length > 0 && (
+          {tags?.length > 0 && (
             <div
               style={{
                 marginTop: 24,
@@ -117,7 +212,7 @@ export default function Product() {
                 gap: 8,
               }}
             >
-              {product.tags.map((t) => (
+              {tags.map((t) => (
                 <span
                   key={t}
                   style={{
