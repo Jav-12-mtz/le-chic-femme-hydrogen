@@ -80,8 +80,15 @@ export function Header({header, isLoggedIn, cart}) {
         transition={{duration: 0.8, ease: [0.16, 1, 0.3, 1]}}
       >
         <div className="header-inner">
-          <Link to="/" className="logo" prefetch="intent">
-            {brand}
+          <Link to="/" className="logo" prefetch="intent" aria-label={brand}>
+            <img
+              src="/logo.png"
+              alt={brand}
+              className="logo-img"
+              width="200"
+              height="64"
+              decoding="async"
+            />
           </Link>
 
           <nav className="nav-center" aria-label="Main navigation">
