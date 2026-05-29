@@ -12,17 +12,20 @@ export function imgUrl(path) {
 }
 
 /**
- * Locale-aware price formatter for catalog values (stored as MXN integers).
- * Falls back to en-US formatting if Intl is missing.
+ * Locale-aware price formatter for catalog values.
+ *
+ * The local catalog stores prices as integers in "cents-like" form
+ * (48900 → $489), matching the Shopify CSV (Variant Price = 489.00).
+ * We divide by 100 so display values match what Shopify shows.
  */
-export const CATALOG_CURRENCY = catalogo?.moneda || 'MXN';
+export const CATALOG_CURRENCY = catalogo?.moneda || 'USD';
 export function formatPrice(value, currency = CATALOG_CURRENCY) {
-  const n = Number(value || 0);
+  const n = Number(value || 0) / 100;
   try {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency,
-      maximumFractionDigits: 0,
+      maximumFractionDigits: n < 10 ? 2 : 0,
     }).format(n);
   } catch {
     return `$ ${n.toLocaleString('en-US')} ${currency}`;
