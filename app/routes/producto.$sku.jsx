@@ -12,25 +12,23 @@ export const meta = ({data}) => [
   },
 ];
 
-const PRODUCT_BY_SKU_QUERY = `#graphql
-  query ProductBySku($query: String!) {
-    products(first: 1, query: $query) {
-      nodes {
-        id
-        title
-        handle
-        descriptionHtml
-        featuredImage { url altText width height }
-        tags
-        productType
-        variants(first: 1) {
-          nodes {
-            id
-            availableForSale
-            sku
-            price { amount currencyCode }
-            compareAtPrice { amount currencyCode }
-          }
+const PRODUCT_BY_HANDLE_QUERY = `#graphql
+  query ProductByHandle($handle: String!) {
+    product(handle: $handle) {
+      id
+      title
+      handle
+      descriptionHtml
+      featuredImage { url altText width height }
+      tags
+      productType
+      variants(first: 1) {
+        nodes {
+          id
+          availableForSale
+          sku
+          price { amount currencyCode }
+          compareAtPrice { amount currencyCode }
         }
       }
     }
@@ -39,28 +37,32 @@ const PRODUCT_BY_SKU_QUERY = `#graphql
 
 export async function loader({params, context}) {
   const {sku} = params;
-  let shopifyProduct = null;
 
-  // Try Shopify first
-  try {
-    const data = await context.storefront.query(PRODUCT_BY_SKU_QUERY, {
-      variables: {query: `sku:${sku}`},
-    });
-    shopifyProduct = data?.products?.nodes?.[0] || null;
-  } catch (e) {
-    console.error('Shopify product lookup failed', e);
+  // Find the local catalog entry to discover the Shopify handle (and have
+  // fallback data if Shopify is offline / product not yet published).
+  const local = findBySku(sku);
+  const handle = local?.handle;
+
+  let shopifyProduct = null;
+  if (handle) {
+    try {
+      const data = await context.storefront.query(PRODUCT_BY_HANDLE_QUERY, {
+        variables: {handle},
+      });
+      shopifyProduct = data?.product || null;
+    } catch (e) {
+      console.error('Shopify product lookup failed', e);
+    }
   }
 
   if (shopifyProduct) {
-    return {product: shopifyProduct, source: 'shopify'};
+    return {product: shopifyProduct, source: 'shopify', local};
   }
 
-  // Fallback to local catalog
-  const local = findBySku(sku);
   if (!local) {
     throw new Response('Piece not found', {status: 404});
   }
-  return {product: local, source: 'local'};
+  return {product: local, source: 'local', local};
 }
 
 const Icon = ({d}) => (
@@ -88,17 +90,19 @@ const ShieldIcon = () => (
 );
 
 export default function ProductDetail() {
-  const {product, source} = useLoaderData();
+  const {product, source, local} = useLoaderData();
   const isShopify = source === 'shopify';
 
   const title = isShopify ? product.title : product.nombre;
   const sku = isShopify ? product.variants?.nodes?.[0]?.sku : product.sku;
-  const imgSrc = isShopify
-    ? product.featuredImage?.url
-    : imgUrl(product.img);
-  const description = isShopify
-    ? product.descriptionHtml
-    : null;
+  // Prefer local (curated) image to keep the boutique aesthetic — Shopify
+  // images often have white studio backgrounds, the catalog ones are editorial.
+  const imgSrc = local?.img
+    ? imgUrl(local.img)
+    : isShopify
+      ? product.featuredImage?.url
+      : imgUrl(product.img);
+  const description = isShopify ? product.descriptionHtml : null;
   const descriptionText = !isShopify ? product.descripcion : null;
   const tags = isShopify ? product.tags : product.tags;
   const variant = isShopify ? product.variants?.nodes?.[0] : null;
@@ -158,17 +162,12 @@ export default function ProductDetail() {
           <div className="pd-actions">
             {variant ? (
               <AddToCartButton
+                className="btn-primary"
+                style={{flex: 1}}
                 disabled={!variant.availableForSale}
-                lines={[
-                  {
-                    merchandiseId: variant.id,
-                    quantity: 1,
-                  },
-                ]}
+                lines={[{merchandiseId: variant.id, quantity: 1}]}
               >
-                <span style={{display: 'inline-flex', width: '100%'}}>
-                  {variant.availableForSale ? 'Add to bag' : 'Sold out'}
-                </span>
+                {variant.availableForSale ? 'Add to bag' : 'Sold out'}
               </AddToCartButton>
             ) : (
               <button className="btn-primary" style={{flex: 1}} disabled>
